@@ -7,7 +7,7 @@ import { Step1Assessment } from './Step1Assessment';
 import { Step2Documents } from './Step2Documents';
 import { Step3Process } from './Step3Process';
 import { Step4Registration } from './Step4Registration';
-import { supabase } from '@/integrations/supabase/client';
+import { getAssessmentFromWordPress } from '@/services/wordpressApi';
 
 function WizardContent() {
   const [searchParams] = useSearchParams();
@@ -41,13 +41,10 @@ function WizardContent() {
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_assessments')
-        .select('*')
-        .eq('phone_number', phoneNumber)
-        .maybeSingle();
+      const result = await getAssessmentFromWordPress(phoneNumber);
 
-      if (data && !error) {
+      if (result.success && result.data) {
+        const data = result.data;
         // User has existing assessment
         if (data.is_eligible) {
           setIsEligible(true);
