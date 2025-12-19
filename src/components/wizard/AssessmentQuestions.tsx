@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Check, X, AlertTriangle } from 'lucide-react';
 import { useWizard } from './WizardContext';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { saveAssessmentToWordPress } from '@/services/wordpressApi';
 
 interface Option {
   id: string;
@@ -77,20 +77,16 @@ export function AssessmentQuestions({ onComplete, onDisqualify }: AssessmentQues
     if (!userInfo.phoneNumber) return;
     
     try {
-      const { error } = await supabase
-        .from('user_assessments')
-        .upsert({
-          phone_number: userInfo.phoneNumber,
-          full_name: userInfo.fullName,
-          province: userInfo.province,
-          is_eligible: isEligible,
-          assessment_answers: answers,
-        }, {
-          onConflict: 'phone_number'
-        });
+      const result = await saveAssessmentToWordPress({
+        phone_number: userInfo.phoneNumber,
+        full_name: userInfo.fullName,
+        province: userInfo.province,
+        is_eligible: isEligible,
+        assessment_answers: answers,
+      });
       
-      if (error) {
-        console.error('Error saving assessment:', error);
+      if (!result.success) {
+        console.error('Error saving assessment to WordPress:', result.error);
       }
     } catch (err) {
       console.error('Error saving assessment:', err);
