@@ -9,6 +9,7 @@ interface UsePhoneValidationReturn {
   phone: string;
   error: string | undefined;
   isValid: boolean;
+  hasError: boolean; // نشان‌دهنده وضعیت خطا (حتی در حین تایپ)
   handlePhoneChange: (value: string) => void;
   validatePhone: () => boolean;
   sanitizedPhone: string;
@@ -30,16 +31,11 @@ export function usePhoneValidation(initialValue: string = ''): UsePhoneValidatio
     // اعتبارسنجی در زمان تایپ
     if (cleaned.length > 0) {
       const result = validateIranianMobile(cleaned);
-      if (cleaned.length >= 11) {
-        setError(result.error);
-        setIsValid(result.isValid);
-      } else {
-        // هنوز در حال تایپ است
-        setError(undefined);
-        setIsValid(false);
-      }
+      // همیشه خطا را نشان بده اگر معتبر نیست
+      setError(result.error);
+      setIsValid(result.isValid);
     } else {
-      setError(undefined);
+      setError('شماره تلفن را وارد کنید');
       setIsValid(false);
     }
   }, []);
@@ -52,11 +48,15 @@ export function usePhoneValidation(initialValue: string = ''): UsePhoneValidatio
   }, [phone]);
 
   const sanitizedPhone = sanitizeIranianPhone(phone);
+  
+  // hasError: اگر شماره وارد شده و معتبر نیست
+  const hasError = phone.length > 0 && !isValid;
 
   return {
     phone,
     error,
     isValid,
+    hasError,
     handlePhoneChange,
     validatePhone,
     sanitizedPhone,
