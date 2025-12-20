@@ -27,6 +27,7 @@ export function WelcomePage({ onStart }: WelcomePageProps) {
     phone: localPhone, 
     error: phoneError, 
     isValid: isPhoneValid, 
+    hasError: hasPhoneError,
     handlePhoneChange, 
     validatePhone,
     sanitizedPhone 
@@ -93,15 +94,19 @@ export function WelcomePage({ onStart }: WelcomePageProps) {
               value={localPhone}
               onChange={(e) => handlePhoneChange(e.target.value)}
               className={cn(
-                "text-right bg-card border-border h-12 rounded-full px-6",
-                phoneError && "border-destructive"
+                "text-right bg-card h-12 rounded-full px-6 transition-colors",
+                hasPhoneError 
+                  ? "border-destructive border-2" 
+                  : isPhoneValid 
+                    ? "border-primary border-2" 
+                    : "border-border"
               )}
               dir="ltr"
               inputMode="tel"
               autoComplete="tel-national"
               name="tel"
             />
-            {phoneError && (
+            {hasPhoneError && phoneError && (
               <p className="text-destructive text-xs px-4">{phoneError}</p>
             )}
           </div>
