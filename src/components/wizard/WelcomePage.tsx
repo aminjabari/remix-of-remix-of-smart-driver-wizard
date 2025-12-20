@@ -9,6 +9,7 @@ import { iranProvinces } from '@/lib/iranProvinces';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePhoneValidation } from '@/hooks/usePhoneValidation';
 
 interface WelcomePageProps {
   onStart: () => void;
@@ -19,9 +20,17 @@ export function WelcomePage({ onStart }: WelcomePageProps) {
   const [searchParams] = useSearchParams();
   
   const [localName, setLocalName] = useState(userInfo.fullName);
-  const [localPhone, setLocalPhone] = useState(userInfo.phoneNumber);
   const [localProvince, setLocalProvince] = useState(userInfo.province);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  
+  const { 
+    phone: localPhone, 
+    error: phoneError, 
+    isValid: isPhoneValid, 
+    handlePhoneChange, 
+    validatePhone,
+    sanitizedPhone 
+  } = usePhoneValidation(userInfo.phoneNumber);
 
   // Auto-populate from query params on mount
   useEffect(() => {
@@ -30,14 +39,15 @@ export function WelcomePage({ onStart }: WelcomePageProps) {
     const provinceParam = searchParams.get('province');
 
     if (nameParam && !localName) setLocalName(nameParam);
-    if (phoneParam && !localPhone) setLocalPhone(phoneParam);
+    if (phoneParam && !localPhone) handlePhoneChange(phoneParam);
     if (provinceParam && !localProvince && iranProvinces.includes(provinceParam)) {
       setLocalProvince(provinceParam);
     }
   }, [searchParams]);
 
   const handleStart = () => {
-    setUserInfo({ fullName: localName, phoneNumber: localPhone, province: localProvince });
+    if (!validatePhone()) return;
+    setUserInfo({ fullName: localName, phoneNumber: sanitizedPhone, province: localProvince });
     onStart();
   };
 
@@ -46,7 +56,7 @@ export function WelcomePage({ onStart }: WelcomePageProps) {
     setDrawerOpen(false);
   };
 
-  const isValid = localName.trim().length > 0 && localPhone.trim().length > 0 && localProvince.length > 0;
+  const isValid = localName.trim().length > 0 && isPhoneValid && localProvince.length > 0;
 
   return (
     <div className="flex flex-col h-[100dvh] bg-card max-w-[600px] mx-auto" dir="rtl">
@@ -75,18 +85,26 @@ export function WelcomePage({ onStart }: WelcomePageProps) {
             autoComplete="name"
             name="name"
           />
-          <Input
-            id="phone"
-            placeholder="شماره تماس"
-            type="tel"
-            value={localPhone}
-            onChange={(e) => setLocalPhone(e.target.value)}
-            className="text-right bg-card border-border h-12 rounded-full px-6"
-            dir="ltr"
-            inputMode="tel"
-            autoComplete="tel-national"
-            name="tel"
-          />
+          <div className="space-y-1">
+            <Input
+              id="phone"
+              placeholder="شماره تماس (مثال: ۰۹۱۲۱۲۳۴۵۶۷)"
+              type="tel"
+              value={localPhone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              className={cn(
+                "text-right bg-card border-border h-12 rounded-full px-6",
+                phoneError && "border-destructive"
+              )}
+              dir="ltr"
+              inputMode="tel"
+              autoComplete="tel-national"
+              name="tel"
+            />
+            {phoneError && (
+              <p className="text-destructive text-xs px-4">{phoneError}</p>
+            )}
+          </div>
           
           {/* Province Drawer for Mobile-Friendly Selection */}
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
