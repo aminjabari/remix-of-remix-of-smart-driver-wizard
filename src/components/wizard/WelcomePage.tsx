@@ -94,12 +94,12 @@ export function WelcomePage({ onStart }: WelcomePageProps) {
               value={localPhone}
               onChange={(e) => handlePhoneChange(e.target.value)}
               className={cn(
-                "text-right bg-card h-12 rounded-full px-6 transition-colors",
+                "text-right bg-card h-12 rounded-full px-6 transition-all border-border",
                 hasPhoneError 
-                  ? "border-destructive border-2" 
+                  ? "ring-2 ring-destructive ring-offset-2" 
                   : isPhoneValid 
-                    ? "border-primary border-2" 
-                    : "border-border"
+                    ? "ring-2 ring-primary ring-offset-2" 
+                    : ""
               )}
               dir="ltr"
               inputMode="tel"
